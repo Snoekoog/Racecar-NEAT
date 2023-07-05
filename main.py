@@ -28,9 +28,6 @@ class GameWindow(pyglet.window.Window):
     def on_close(self):
         self.close()
 
-    def on_draw(self):
-        pass
-
     def my_draw(self, game):
         self.switch_to()
         pyglet.clock.tick()
@@ -68,13 +65,6 @@ class GameWindow(pyglet.window.Window):
     # def on_mouse_motion(self, x, y, dx, dy):
     #     self.mouse_x = x
     #     self.mouse_y = y
-
-    # def on_draw(self):
-    #     self.game.render()
-
-    # def update(self, dt):
-    #     # self.game.car.update()
-    #     pass
 
 if __name__ == "__main__":
     window = GameWindow(windowWidth, windowHeight, "Racecar game", resizable=False)

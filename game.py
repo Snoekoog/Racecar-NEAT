@@ -2,38 +2,10 @@ import numpy as np
 import pyglet
 from pyglet.gl import *
 from racegame.car import Car
-from vector_math import linesCollided, vec2, unit_vector_from_angle
+from vector_math import linesCollided, vec2, unit_vector_from_angle, do_collide
 from racegame.config import windowHeight, windowWidth
 from NEAT.Population import *
 import time
-
-def do_collide(track_limit, car):
-    w = car.w
-    h = car.l
-
-    # print(track_limit['y2'])
-
-    forward_vector = car.heading
-    sideways_vector = vec2(car.heading).rotate(90)
-    position = vec2(car.x, car.y)
-
-    corners = []
-    corner_multipliers = [[1, 1], [1, -1], [-1, -1], [-1, 1]]
-
-    if track_limit['x'] == track_limit['x2']:
-        track_limit['x'] += 1
-    if track_limit['y'] == track_limit['y2']:
-        track_limit['y'] += 1
-
-    for i in range(4):
-        corners.append(position + (sideways_vector * w / 2 * corner_multipliers[i][0]) + (forward_vector * h / 2 * corner_multipliers[i][1]))
-
-    for i in range(4):
-        j = i + 1
-        j = j % 4
-        if linesCollided(track_limit['x'], track_limit['y'], track_limit['x2'], track_limit['y2'], corners[i].x, corners[i].y, corners[j].x, corners[j].y):
-            return True
-    return False
 
 class Game:
 
@@ -49,10 +21,11 @@ class Game:
         self.window = window
         self.initial_heading = unit_vector_from_angle(initial_heading)
         self.best_genome = None
-        initial_genome_file = open('./Results/racecar-run-20230705-013459', 'rb')
+        self.stop_on_lap = False
+        initial_genome_file = open('./Results/five-layer-high-rbr', 'rb')
         initial_genome = pickle.load(initial_genome_file)
         initial_genome_file.close()
-        self.population = Population(self.number_agents, self.max_generations, self.determine_fitness, 11, 2, inject_genomes = [initial_genome])
+        self.population = Population(self.number_agents, self.max_generations, self.determine_fitness, 11, 2, inject_genomes = None)
         self.gen_text = pyglet.text.Label('Generation: 1',font_name='Century Gothic',font_size=15,bold=True,x=5, y=windowHeight - 5,anchor_x='left', anchor_y='top')
         self.score_text = pyglet.text.Label('Best score: 0',font_name='Century Gothic',font_size=15,bold=True,x=5, y=windowHeight - 25,anchor_x='left', anchor_y='top')
         self.species_text = pyglet.text.Label('Species: 0',font_name='Century Gothic',font_size=15,bold=True,x=5, y=windowHeight - 45,anchor_x='left', anchor_y='top')
@@ -129,10 +102,12 @@ class Game:
         self.best_genome = best_brain
         # print(str(len(self.agents)) + " agents with best fitness of " + str(best_fitness))
         laps_finished = max([agent.laps for agent in self.agents])
+        is_finished = any([agent.laps > 0 for agent in self.agents]) and self.stop_on_lap
         self.gen_text.text = "Generation: " + str(self.population.generation_number + 2)
         self.score_text.text = "Best score: " + str(best_fitness)
         self.species_text.text = "Species: " + str(len(self.population.species))
         self.laps_text.text = 'Max Laps: ' + str(laps_finished)
+        return is_finished
 
     def draw_genome(self):
 

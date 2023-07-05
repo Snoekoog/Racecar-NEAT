@@ -43,5 +43,31 @@ def getCollisionPoint(x1, y1, x2, y2, x3, y3, x4, y4):
         return vec2(intersectionX, intersectionY)
     return None
 
+def do_collide(track_limit, car):
+    w = car.w
+    h = car.l
+
+    forward_vector = car.heading
+    sideways_vector = vec2(car.heading).rotate(90)
+    position = vec2(car.x, car.y)
+
+    corners = []
+    corner_multipliers = [[1, 1], [1, -1], [-1, -1], [-1, 1]]
+
+    if track_limit['x'] == track_limit['x2']:
+        track_limit['x'] += 1
+    if track_limit['y'] == track_limit['y2']:
+        track_limit['y'] += 1
+
+    for i in range(4):
+        corners.append(position + (sideways_vector * w / 2 * corner_multipliers[i][0]) + (forward_vector * h / 2 * corner_multipliers[i][1]))
+
+    for i in range(4):
+        j = i + 1
+        j = j % 4
+        if linesCollided(track_limit['x'], track_limit['y'], track_limit['x2'], track_limit['y2'], corners[i].x, corners[i].y, corners[j].x, corners[j].y):
+            return True
+    return False
+
 def dist(x1, y1, x2, y2):
     return m.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)

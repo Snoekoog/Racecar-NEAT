@@ -183,107 +183,79 @@ class Population:
     
     def crossover(self, parent_1, parent_2, offspring_ID):
 
-        n_mum = len(parent_1.connections)
-        n_dad = len(parent_2.connections)
+        n_1 = len(parent_1.connections)
+        n_2 = len(parent_2.connections)
 
-        # if parent_1.fitness == parent_2.fitness:
-        #     if n_mum == n_dad:
-        #         better = (parent_1, parent_2)[random.randint(0,1)]
-        #     elif n_mum < n_dad:
-        #         better = parent_1
-        #     else:
-        #         better = parent_2
-        # elif parent_1.fitness > parent_2.fitness:
-        #     better = parent_1
-        # else:
-        #     better = parent_2
         better = sorted([parent_1, parent_2], reverse=True, key=lambda x: (x.fitness, 1 / len(x.connections)))[0]
 
-        baby_neurons = []   # neuron genes
-        baby_links = []     # link genes
+        offspring_nodes = []
+        offspring_connections = []
 
-        # iterate over parent genes
-        i_mum = i_dad = 0
-        neuron_ids = set()
-        while i_mum < n_mum or i_dad < n_dad:
-            mum_gene = parent_1.connections[i_mum] if i_mum < n_mum else None
-            dad_gene = parent_2.connections[i_dad] if i_dad < n_dad else None
+        i_1 = i_2 = 0
+        node_ids = set()
+
+        while i_1 < n_1 or i_2 < n_2:
+            parent_1_gene = parent_1.connections[i_1] if i_1 < n_1 else None
+            parent_2_gene = parent_2.connections[i_2] if i_2 < n_2 else None
             selected_gene = None
-            if mum_gene and dad_gene:
-                if mum_gene.innovation_number == dad_gene.innovation_number:
-                    # same innovation number, pick gene randomly from mom or dad
+            if parent_1_gene and parent_2_gene:
+                if parent_1_gene.innovation_number == parent_2_gene.innovation_number:
                     idx = random.randint(0,1)
-                    selected_gene = (mum_gene,dad_gene)[idx]
+                    selected_gene = (parent_1_gene,parent_2_gene)[idx]
                     selected_genome = (parent_1,parent_2)[idx]
-                    i_mum += 1
-                    i_dad += 1
-                elif dad_gene.innovation_number < mum_gene.innovation_number:
-                    # dad has lower innovation number, pick dad's gene, if they are better
+                    i_1 += 1
+                    i_2 += 1
+                elif parent_2_gene.innovation_number < parent_1_gene.innovation_number:
                     if better == parent_2:
-                        selected_gene = parent_2.connections[i_dad]
+                        selected_gene = parent_2.connections[i_2]
                         selected_genome = parent_2
-                    i_dad += 1
-                elif mum_gene.innovation_number < dad_gene.innovation_number:
-                    # mum has lower innovation number, pick mum's gene, if they are better
+                    i_2 += 1
+                elif parent_1_gene.innovation_number < parent_2_gene.innovation_number:
                     if better == parent_1:
-                        selected_gene = mum_gene
+                        selected_gene = parent_1_gene
                         selected_genome = parent_1
-                    i_mum += 1
-            elif mum_gene == None and dad_gene:
-                # end of mum's genome, pick dad's gene, if they are better
+                    i_1 += 1
+            elif parent_1_gene == None and parent_2_gene:
                 if better == parent_2:
-                    selected_gene = parent_2.connections[i_dad]
+                    selected_gene = parent_2.connections[i_2]
                     selected_genome = parent_2
-                i_dad += 1
-            elif mum_gene and dad_gene == None:
-                # end of dad's genome, pick mum's gene, if they are better
+                i_2 += 1
+            elif parent_1_gene and parent_2_gene == None:
                 if better == parent_1:
-                    selected_gene = mum_gene
+                    selected_gene = parent_1_gene
                     selected_genome = parent_1
-                i_mum += 1
+                i_1 += 1
 
-            # add gene only when it has not already been added
-            # TODO: in which case do we need this?
-            if selected_gene and len(baby_links) and baby_links[len(baby_links)-1].innovation_number == selected_gene.innovation_number:
-                print('GENE HAS ALREADY BEEN ADDED')
+            if selected_gene and len(offspring_connections) and offspring_connections[len(offspring_connections)-1].innovation_number == selected_gene.innovation_number:
                 selected_gene = None
 
             if selected_gene != None:
-                # inherit link
-                baby_links.append(deepcopy(selected_gene))
+                offspring_connections.append(deepcopy(selected_gene))
+                if not selected_gene.origin_node_ID in node_ids:
+                    node = selected_genome.get_node_by_id(selected_gene.origin_node_ID)
+                    if node != None:
+                        offspring_nodes.append(deepcopy(node))
+                        node_ids.add(selected_gene.origin_node_ID)
+                if not selected_gene.target_node_ID in node_ids:
+                    node = selected_genome.get_node_by_id(selected_gene.target_node_ID)
+                    if node != None:
+                        offspring_nodes.append(deepcopy(node))
+                        node_ids.add(selected_gene.target_node_ID)
 
-                # inherit neurons
-                if not selected_gene.origin_node_ID in neuron_ids:
-                    neuron = selected_genome.get_node_by_id(selected_gene.origin_node_ID)
-                    if neuron != None:
-                        baby_neurons.append(deepcopy(neuron))
-                        neuron_ids.add(selected_gene.origin_node_ID)
-                if not selected_gene.target_node_ID in neuron_ids:
-                    neuron = selected_genome.get_node_by_id(selected_gene.target_node_ID)
-                    if neuron != None:
-                        baby_neurons.append(deepcopy(neuron))
-                        neuron_ids.add(selected_gene.target_node_ID)
+        for node in parent_1.get_zero_layer_nodes():
+            if not node.ID in node_ids:
+                offspring_nodes.append(deepcopy(node))
+                node_ids.add(node.ID)
 
-            # in NEAT-Sweepers the baby neurons are created from innovations...
-            # we lose activation_mutation in this case
-
-        # add in- and output neurons if they are not connected
-        for neuron in parent_1.get_zero_layer_nodes():
-            if not neuron.ID in neuron_ids:
-                baby_neurons.append(deepcopy(neuron))
-                neuron_ids.add(neuron.ID)
-
-        #print('\nCROSSOVER')
-        if all([not l.enabled for l in baby_links]):
-            # in case of same innovation id, we choose random and can end up with all links disabled
-            random.choice(baby_links).enabled = True
+        if all([not l.enabled for l in offspring_connections]):
+            random.choice(offspring_connections).enabled = True
 
         innovation_db = parent_1.innovation_history
         n_inputs = parent_1.input_space
         n_outputs = parent_1.output_space
-        baby = Genome(offspring_ID, innovation_db, baby_neurons, baby_links, n_inputs, n_outputs)
+        offspring = Genome(offspring_ID, innovation_db, offspring_nodes, offspring_connections, n_inputs, n_outputs)
 
-        return baby
+        return offspring
 
     def adjust_compatibility_threshold(self):
         if len(self.species) < POPULATION_CONFIG.TARGET_SPECIES_SIZE:
