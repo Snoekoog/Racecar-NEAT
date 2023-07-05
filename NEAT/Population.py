@@ -122,7 +122,6 @@ class Population:
     def fill_population(self):
 
         if self.inject_genomes and self.generation_number == 0 and all([isinstance(genome, Genome) for genome in self.inject_genomes]):
-            # print('INJECTING')
             self.genomes.extend(self.inject_genomes)
 
         while len(self.genomes) < self.population_size:
@@ -150,12 +149,10 @@ class Population:
             species.old_best_genome = species.best_genome
             species.best_genome = species.genomes[0]
 
-            if species.best_genome.fitness > species.best_fitness:
+            if species.best_genome.fitness > species.old_best_genome.fitness:
                 species.staleness = 0
             else:
                 species.staleness += 1
-
-            species.best_fitness = species.best_genome.fitness
 
             aggregated_fitness = 0
             for genome in species.genomes:
@@ -189,17 +186,18 @@ class Population:
         n_mum = len(parent_1.connections)
         n_dad = len(parent_2.connections)
 
-        if parent_1.fitness == parent_2.fitness:
-            if n_mum == n_dad:
-                better = (parent_1, parent_2)[random.randint(0,1)]
-            elif n_mum < n_dad:
-                better = parent_1
-            else:
-                better = parent_2
-        elif parent_1.fitness > parent_2.fitness:
-            better = parent_1
-        else:
-            better = parent_2
+        # if parent_1.fitness == parent_2.fitness:
+        #     if n_mum == n_dad:
+        #         better = (parent_1, parent_2)[random.randint(0,1)]
+        #     elif n_mum < n_dad:
+        #         better = parent_1
+        #     else:
+        #         better = parent_2
+        # elif parent_1.fitness > parent_2.fitness:
+        #     better = parent_1
+        # else:
+        #     better = parent_2
+        better = sorted([parent_1, parent_2], reverse=True, key=lambda x: (x.fitness, 1 / len(x.connections)))[0]
 
         baby_neurons = []   # neuron genes
         baby_links = []     # link genes
@@ -299,7 +297,7 @@ class Population:
         print(f'{"Species ID:":<20}' + "|" +  ' '.join(f'{species.id:<10}' + "|" for species in self.species))
         print(f'{"Species Size:":<20}' + "|" +  ' '.join(f'{len(species.genomes):<10}' + "|" for species in self.species))
         print(f'{"Species avg.fit.:":<20}' + "|" +  ' '.join(f'{round(species.average_fitness, 2):<10}' + "|" for species in self.species))
-        print(f'{"Species best.fit.:":<20}' + "|" +  ' '.join(f'{round(species.best_fitness, 2):<10}' + "|" for species in self.species))
+        print(f'{"Species best.fit.:":<20}' + "|" +  ' '.join(f'{round(species.best_genome.fitness, 2):<10}' + "|" for species in self.species))
         print(f'{"Best Genome layers:":<20}' + "|" +  ' '.join(f'{species.best_genome.layers:<10}' + "|" for species in self.species))
         print(f'{"Best Genome Nodes:":<20}' + "|" +  ' '.join(f'{len(species.best_genome.nodes):<10}' + "|" for species in self.species))
         print("-"*140)

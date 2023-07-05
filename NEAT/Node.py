@@ -17,20 +17,20 @@ class Node():
 
     def fire(self, genome):
 
-        if self.type not in ['bias', 'input']:
-            self.activate(self.aggregated_inputs)
-
-        for connection in self.outgoing_connections:
+        self.aggregated_inputs = 0.0
+        for connection in self.incoming_connections:
             if connection.enabled:
-                target_node = genome.get_node_by_id(connection.target_node_ID)
-                target_node.aggregated_inputs += connection.weight * self.activated_response
+                origin_node = genome.get_node_by_id(connection.origin_node_ID)
+                self.aggregated_inputs += connection.weight * origin_node.activated_response
+
+        self.activate(self.aggregated_inputs)
 
     def activate(self, x: float):
 
         if self.activation_type == 'Sigmoid':
             self.activated_response = 1 / (1 + np.exp(-x))
         elif self.activation_type == "ScaledSigmoid":
-            self.activated_response = (1.0 / (1.0 + np.exp(-self.aggregated_inputs/self.activation_response))) * 2.0 - 1.0
+            self.activated_response = (1.0 / (1.0 + np.exp(-x/self.activation_response))) * 2.0 - 1.0
         elif self.activation_type == 'ReLu':
             self.activated_response = max(0, x)
         elif self.activation_type == 'LeakyReLu':

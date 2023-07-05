@@ -16,14 +16,8 @@ class Connection:
     def mutate(self):
 
         if random.random() < CONNECTION_CONFIG.MUTATE_RESET:
-            # self.weight = random.uniform(CONNECTION_CONFIG.MIN_WEIGHT, CONNECTION_CONFIG.MAX_WEIGHT)
             self.weight = np.random.normal(0, CONNECTION_CONFIG.STD_DEV_WEIGHT)
         else:
             weight_change = np.random.normal(0, CONNECTION_CONFIG.STD_DEV_WEIGHT_VAR)
             self.weight += weight_change
             self.weight = np.clip(self.weight, CONNECTION_CONFIG.MIN_WEIGHT, CONNECTION_CONFIG.MAX_WEIGHT)
-
-    def copy(self, origin_node_ID: int, target_node_ID: int):
-        copy_connection = Connection(self.weight, origin_node_ID, target_node_ID, self.innovation_number)
-        copy_connection.enabled = self.enabled
-        return copy_connection

@@ -107,51 +107,21 @@ class Genome:
                 origin_node = self.get_node_by_id(connection.origin_node_ID)
                 target_node.incoming_connections.append(connection)
                 origin_node.outgoing_connections.append(connection)
-
+    
     def feed_forward(self, inputs):
         np.seterr(over='ignore')
-
         for _ in range(self.layers):
             outputs = []
-            i_input = 0
-            i_bias = 0
+            input_number = count(0)
             for node in self.nodes:
                 if node.type == "input":
-                    node.activated_response = inputs[i_input]
-                    i_input += 1
+                    node.activated_response = inputs[next(input_number)]
                 elif node.type == "bias":
                     node.activated_response = 1
-                    i_bias += 1
                 else:
-                    aggregated_inputs = 0.0
-                    for connection in node.incoming_connections:
-                        input_node = self.get_node_by_id(connection.origin_node_ID)
-                        aggregated_inputs += input_node.activated_response * connection.weight
-                    # print(node.aggregated_inputs / node.activation_response)
-                    node.activated_response = (1.0 / (1.0 + np.exp(-aggregated_inputs/node.activation_response))) * 2.0 - 1.0
+                    node.fire(self)
                     if node.type == "output":
-                        # outputs.append(float(node.aggregated_inputs >= 0))
                         outputs.append(node.activated_response)
-        return np.array(outputs)
-    
-    def feed_forward3(self, inputs):
-        for _ in range(self.layers):
-            outputs = []
-            i_input = 0
-            i_bias = 0
-            for node in self.nodes:
-                if node.type == "input":
-                    node.activated_response = inputs[i_input]
-                    i_input += 1
-                elif node.type == "bias":
-                    node.activated_response = 1
-                    i_bias += 1
-
-                node.fire(self)
-
-                if node.type == "output":
-                    # outputs.append(float(node.aggregated_inputs >= 0))
-                    outputs.append(node.activated_response)
         return np.array(outputs)
     
     def fully_connect(self):
@@ -162,7 +132,6 @@ class Genome:
             for output_node in output_nodes:
                 innovation = self.innovation_history.get_innovation('connection', input_node.ID, output_node.ID)
                 weight = np.random.normal(0, CONNECTION_CONFIG.STD_DEV_WEIGHT)
-                # weight = random.random()*2-1
                 new_connection = Connection(weight, input_node.ID, output_node.ID, innovation.innovation_ID)
                 self.connections.append(new_connection)
 
@@ -187,7 +156,6 @@ class Genome:
         else:
             while random_connection == None:
                 trial_connection = random.choice(self.connections)
-                # trial_connection = self.connections[random.randint(0,len(self.connections)-1)]
                 if trial_connection.enabled and not trial_connection.recurrent and self.get_node_by_id(trial_connection.origin_node_ID).type != "bias":
                     random_connection = trial_connection
 
@@ -271,6 +239,3 @@ class Genome:
             probability_value = random.random()
             if probability_value < GENOME_CONFIG.MUTATION_ACTIVATION:
                 node.activation_response += (random.random()*2-1) * GENOME_CONFIG.MUTATION_ACTIVATION_PERTURBATION
-
-    def clone(self):
-        pass
