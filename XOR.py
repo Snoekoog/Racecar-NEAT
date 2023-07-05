@@ -36,7 +36,7 @@ class Game:
             mse = 0.0
             for (input, target) in zip(self.input_data, self.output_data):
 
-                output = genome.feed_forward(input)
+                output = genome.feed_forward3(input)
                 # print(output)
                 err = target - output
                 # print(err)

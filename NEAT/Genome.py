@@ -141,10 +141,10 @@ class Genome:
             i_bias = 0
             for node in self.nodes:
                 if node.type == "input":
-                    node.aggregated_inputs = inputs[i_input]
+                    node.activated_response = inputs[i_input]
                     i_input += 1
                 elif node.type == "bias":
-                    node.aggregated_inputs = 1
+                    node.activated_response = 1
                     i_bias += 1
 
                 node.fire(self)

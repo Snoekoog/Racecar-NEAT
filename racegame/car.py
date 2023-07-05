@@ -36,6 +36,9 @@ class Car:
         self.max_radar_distance = 300
         self.gas_magnitude = 0
         self.is_steering_left = 0
+        
+        self.steer_input = 0
+        self.throttle_input = 0
 
         self.state = 'idle'
 
@@ -138,8 +141,10 @@ class Car:
         else:
             self.is_reversing = True
         self.gas_magnitude = abs(gas)
+        self.throttle_input = gas
 
         steering_angle = outputs[1]
+        self.steer_input = steering_angle
 
         if steering_angle >= 0:
             self.is_steering_right = True
@@ -156,24 +161,18 @@ class Car:
         gate_center = vec2((next_reward_sector['x'] + next_reward_sector['x2']) / 2, (next_reward_sector['y'] + next_reward_sector['y2']) / 2)
         relative_position = gate_center - vec2(self.x, self.y)
 
-        normalized_radar_distances = [1 - (max(1, distance) / self.max_radar_distance) for distance in self.collision_line_distances]
-        normalized_forward_velocity = max(0, self.v / self.max_speed)
-        normalized_reverse_velocity = max(0, self.v / self.max_reverse_speed)
-        if self.drift_momentum > 0:
-            normalized_pos_drift = self.drift_momentum / 5
-            normalized_neg_drift = 0
-        else:
-            normalized_pos_drift = 0
-            normalized_neg_drift = self.drift_momentum / -5
+        # normalised_radar_distances = [1 - (max(1, distance) / self.max_radar_distance) for distance in self.collision_line_distances]
+        normalised_radar_distances = [(max(1, distance) / self.max_radar_distance) for distance in self.collision_line_distances]
+
+        normalised_speed = self.v / self.max_speed
+        normalised_drift_speed = self.drift_momentum / 5
 
         normalized_target_heading = (calc_angle(self.heading) - calc_angle(relative_position)) % 360
-
         if normalized_target_heading > 180:
             normalized_target_heading = -1 * (360 - normalized_target_heading)
-
         normalized_target_heading /= 180
 
-        normalized_state = [*normalized_radar_distances, normalized_forward_velocity, normalized_reverse_velocity, normalized_pos_drift, normalized_neg_drift, normalized_target_heading]
+        normalized_state = [*normalised_radar_distances, normalised_speed, normalised_drift_speed, normalized_target_heading]
 
         return np.array(normalized_state)
 
@@ -188,27 +187,35 @@ class Car:
         if self.v < 5:
             drift_momentum_change = 0
 
-        if self.is_steering_left:
-            self.heading = self.heading.rotate(rad_to_deg(self.turning_rate) * drift_factor * self.steer_magnitude)
-            self.drift_momentum -= drift_momentum_change
+        # if self.is_steering_left:
+        #     self.heading = self.heading.rotate(rad_to_deg(self.turning_rate) * drift_factor * self.steer_magnitude)
+        #     self.drift_momentum -= drift_momentum_change
 
-        elif self.is_steering_right:
-            self.heading = self.heading.rotate(-rad_to_deg(self.turning_rate) * drift_factor * self.steer_magnitude)
-            self.drift_momentum += drift_momentum_change
+        # elif self.is_steering_right:
+        #     self.heading = self.heading.rotate(-rad_to_deg(self.turning_rate) * drift_factor * self.steer_magnitude)
+        #     self.drift_momentum += drift_momentum_change
+
+        self.heading = self.heading.rotate(rad_to_deg(self.turning_rate) * drift_factor * self.steer_input)
+        self.drift_momentum -= drift_momentum_change * np.sign(self.steer_input)
 
         self.a = 0
-        if self.is_accelerating:
-            if self.v < 0:
-                self.a = 3 * self.a_speed
-            else:
-                self.a = self.a_speed
-        if self.is_reversing:
-            if self.v > 0:
-                self.a = -3 * self.a_speed
-            else:
-                self.a = -1 * self.a_speed
+        # if self.is_accelerating:
+        #     if self.v < 0:
+        #         self.a = 3 * self.a_speed
+        #     else:
+        #         self.a = 1 * self.a_speed
+        # if self.is_reversing:
+        #     if self.v > 0:
+        #         self.a = -3 * self.a_speed
+        #     else:
+        #         self.a = -1 * self.a_speed
 
-        self.v += self.a * self.gas_magnitude
+        self.a = self.a_speed * self.throttle_input
+        if (self.v < 0 and self.throttle_input > 0) or (self.v > 0 and self.throttle_input < 0):
+            self.a *= 3
+
+        # self.v += self.a * self.gas_magnitude
+        self.v += self.a
         self.v *= self.friction
         self.v = np.clip(self.v, self.max_reverse_speed, self.max_speed)
 

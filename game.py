@@ -49,10 +49,10 @@ class Game:
         self.window = window
         self.initial_heading = unit_vector_from_angle(initial_heading)
         self.best_genome = None
-        initial_genome_file = open('./Results/racecar-run-20230704-160557', 'rb')
+        initial_genome_file = open('./Results/racecar-run-20230705-013459', 'rb')
         initial_genome = pickle.load(initial_genome_file)
         initial_genome_file.close()
-        self.population = Population(self.number_agents, self.max_generations, self.determine_fitness, 13, 2, inject_genomes = [initial_genome])
+        self.population = Population(self.number_agents, self.max_generations, self.determine_fitness, 11, 2, inject_genomes = [initial_genome])
         self.gen_text = pyglet.text.Label('Generation: 1',font_name='Century Gothic',font_size=15,bold=True,x=5, y=windowHeight - 5,anchor_x='left', anchor_y='top')
         self.score_text = pyglet.text.Label('Best score: 0',font_name='Century Gothic',font_size=15,bold=True,x=5, y=windowHeight - 25,anchor_x='left', anchor_y='top')
         self.species_text = pyglet.text.Label('Species: 0',font_name='Century Gothic',font_size=15,bold=True,x=5, y=windowHeight - 45,anchor_x='left', anchor_y='top')
