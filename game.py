@@ -22,6 +22,7 @@ class Game:
         self.initial_heading = unit_vector_from_angle(initial_heading)
         self.best_genome = None
         self.stop_on_lap = False
+        self.champion_id = None
         initial_genome_file = open('./Results/five-layer-high-rbr', 'rb')
         initial_genome = pickle.load(initial_genome_file)
         initial_genome_file.close()
@@ -59,7 +60,8 @@ class Game:
 
         for i in range(len(genomes)):
             genomes[i].fitness = 100
-            self.agents.append(Car(genomes[i], self.initial_x, self.initial_y, self.initial_heading))
+            is_champion = genomes[i].ID == self.champion_id
+            self.agents.append(Car(genomes[i], self.initial_x, self.initial_y, self.initial_heading, is_champion))
 
         for k in range(500 + self.population.generation_number * 25):
             if self.generation_finished():
@@ -107,6 +109,7 @@ class Game:
         self.score_text.text = "Best score: " + str(best_fitness)
         self.species_text.text = "Species: " + str(len(self.population.species))
         self.laps_text.text = 'Max Laps: ' + str(laps_finished)
+        self.champion_id = self.best_genome.ID
         return is_finished
 
     def draw_genome(self):

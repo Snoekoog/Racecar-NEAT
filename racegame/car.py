@@ -5,7 +5,7 @@ from vector_math import *
 
 class Car:
 
-    def __init__(self, neural_network, initial_x, initial_y, initial_heading):
+    def __init__(self, neural_network, initial_x, initial_y, initial_heading, is_champion = False):
         self.brain = neural_network
         self.x = initial_x
         self.y = initial_y
@@ -42,7 +42,10 @@ class Car:
 
         self.state = 'idle'
 
-        self.vehicle_pixel_art = pyglet.image.load("./racegame/assets/racecar-pixel-art.png")
+        if not is_champion:
+            self.vehicle_pixel_art = pyglet.image.load("./racegame/assets/racecar-pixel-art.png")
+        else:
+            self.vehicle_pixel_art = pyglet.image.load("./racegame/assets/racecar-pixel-art-v2.png")
         self.vehicle_sprite = pyglet.sprite.Sprite(self.vehicle_pixel_art, x = 2 * windowWidth, y = 2 * windowHeight)
 
         self.reset_controls()
