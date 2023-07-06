@@ -6,12 +6,17 @@ import random
 from itertools import count
 from .config import POPULATION_CONFIG
 from copy import deepcopy
+import json
+import os
 import pickle
+import time
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 class Population:
 
-    def __init__(self, population_size: int, max_generations: int, fitness_function: callable, input_space: int, output_space: int, inject_genomes: list[Genome]= None ,do_species_target: bool = False, verbose: bool = True):
+    def __init__(self, population_size: int, max_generations: int, fitness_function: callable, input_space: int, output_space: int, inject_genomes: list[Genome]= None ,do_species_target: bool = False, verbose: bool = True, do_graph: bool = True, save_stats: bool = True):
 
         # NEAT data
         self.genomes = []
@@ -33,6 +38,15 @@ class Population:
         self.input_space = input_space
         self.output_space = output_space
         self.verbose = verbose
+        self.do_graph = do_graph
+        self.save_stats = save_stats
+        self.identifier = time.strftime("%Y%m%d-%H%M%S")
+        self.statistics = {
+            "total_gens": 0,
+            "generations": [],
+            "best_fitness": [],
+            "species": []
+        }
 
         # For other versions of NEAT
         # self.best_species = None
@@ -43,6 +57,23 @@ class Population:
             self.epoch()
             if self.verbose:
                 self.printer()
+
+            if self.do_graph or self.save_stats:
+                for species in self.species:
+                    while len(self.statistics['species']) <= species.id:
+                        self.statistics['species'].append([])
+                    species_data = [self.generation_number, len(species.genomes), species.best_genome.fitness]
+                    self.statistics['species'][species.id].append(species_data)
+                self.statistics['generations'].append(self.generation_number)
+                self.statistics['best_fitness'].append(self.best_genome.fitness)
+                self.statistics['total_gens'] = self.generation_number
+
+
+        if self.do_graph:
+            self.graph()
+
+        if self.save_stats:
+            self.save_statistics()
 
     def epoch(self):
 
@@ -242,7 +273,7 @@ class Population:
                         offspring_nodes.append(deepcopy(node))
                         node_ids.add(selected_gene.target_node_ID)
 
-        for node in parent_1.get_zero_layer_nodes():
+        for node in parent_1.get_edge_nodes():
             if not node.ID in node_ids:
                 offspring_nodes.append(deepcopy(node))
                 node_ids.add(node.ID)
@@ -267,11 +298,51 @@ class Population:
         print("-"*140)
         print(f'{"Generation: " + str(self.generation_number):^140}')
         print(f'{"Species ID:":<20}' + "|" +  ' '.join(f'{species.id:<10}' + "|" for species in self.species))
+        print(f'{"Species age:":<20}' + "|" +  ' '.join(f'{species.age:<10}' + "|" for species in self.species))
         print(f'{"Species Size:":<20}' + "|" +  ' '.join(f'{len(species.genomes):<10}' + "|" for species in self.species))
         print(f'{"Species avg.fit.:":<20}' + "|" +  ' '.join(f'{round(species.average_fitness, 2):<10}' + "|" for species in self.species))
         print(f'{"Species best.fit.:":<20}' + "|" +  ' '.join(f'{round(species.best_genome.fitness, 2):<10}' + "|" for species in self.species))
         print(f'{"Best Genome layers:":<20}' + "|" +  ' '.join(f'{species.best_genome.layers:<10}' + "|" for species in self.species))
         print(f'{"Best Genome Nodes:":<20}' + "|" +  ' '.join(f'{len(species.best_genome.nodes):<10}' + "|" for species in self.species))
         print("-"*140)
-        print("Other Statistics:" + "  |  " + "Compatability Factor = " + str(self.compatability_multiplier) + "  |  " + "Finished = " + str(self.finished))
+        print("Other Statistics:" + "  |  " + "Compatibility Factor = " + str(self.compatability_multiplier) + "  |  " + "Finished = " + str(self.finished))
         pass
+
+    def graph(self):
+
+        data = np.zeros([self.statistics['total_gens'], len(self.statistics['species'])])
+        # print(self.statistics)
+        for i in range(len(self.statistics['species'])):
+            s_data = np.array(self.statistics['species'][i])
+            first_gen = int(s_data[0, 0])
+            last_gen = int(s_data[-1, 0])
+            data[first_gen-1:last_gen, i] = s_data[:, 1]
+
+        fig, ax = plt.subplots()
+        ax.stackplot(np.arange(self.generation_number), data.T, alpha = 0.4)
+        ax.set_xlim(0, self.statistics['total_gens']-1)
+        ax.set_xlabel("Generation")
+        ax.set_ylabel("Genomes")
+
+        fig2, ax2 = plt.subplots()
+        for i in range(len(self.statistics['species'])):
+            species_data = np.array(self.statistics['species'][i])
+            ax2.plot(species_data[:,0], species_data[:,2])
+        ax2.set_xlabel("Generation")
+        ax2.set_ylabel("Species Best Fitness")
+
+        fig3, ax3 = plt.subplots()
+        ax3.plot(self.statistics['generations'], self.statistics['best_fitness'], color='black')
+        ax3.set_xlabel("Generation")
+        ax3.set_ylabel("Population Best Fitness")
+
+        plt.show()
+        pass
+
+    def save_statistics(self):
+
+        if not os.path.exists("NEAT_RUN_STATS"):
+            os.makedirs("NEAT_RUN_STATS")
+
+        with open("./NEAT_RUN_STATS/" + self.identifier + ".json", 'w') as f:
+            json.dump(self.statistics, f, indent=2) 

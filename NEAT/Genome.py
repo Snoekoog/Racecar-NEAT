@@ -25,6 +25,8 @@ class Genome:
         self.fitness = 0
         self.adjusted_fitness = 0
         self.age = 0
+        self.FSNEAT = False
+        self.FDNEAT = False
 
         if nodes != None:
             if np.all([not c.enabled for c in connections]):
@@ -51,7 +53,10 @@ class Genome:
 
         innovation_history.next_node_id = max(innovation_history.next_node_id, next(self.next_node_id))
 
-        self.fully_connect()
+        if not self.FSNEAT:
+            self.fully_connect()
+        else:
+            self.partially_connect()
 
     def get_zero_layer_nodes(self):
         return [node for node in self.nodes if node.type in ["input", "bias"]]
@@ -135,6 +140,14 @@ class Genome:
                 new_connection = Connection(weight, input_node.ID, output_node.ID, innovation.innovation_ID)
                 self.connections.append(new_connection)
 
+    def partially_connect(self):
+        self.connections = []
+        input_node = random.choice(self.get_zero_layer_nodes())
+        output_node = random.choice(self.get_output_nodes())
+        innovation = self.innovation_history.get_innovation('connection', input_node.ID, output_node.ID)
+        weight = np.random.normal(0, CONNECTION_CONFIG.STD_DEV_WEIGHT)
+        new_connection = Connection(weight, input_node.ID, output_node.ID, innovation.innovation_ID)
+        self.connections.append(new_connection)
     
     def build_network(self):
 
@@ -186,6 +199,14 @@ class Genome:
             return (new_node, new_connection_1, new_connection_2)
         else:
             return None
+        
+    def remove_connection(self):
+
+        for _ in range(GENOME_CONFIG.FIND_LINK_TRIES):
+            random_connection = random.choice(self.connections)
+
+            if self.get_node_by_id(random_connection.origin_node_ID).type in ["input", "bias"] and self.get_node_by_id(random_connection.target_node_ID).type == "output":
+                self.connections.remove(random_connection)
 
     def add_connection(self):
 
@@ -239,3 +260,8 @@ class Genome:
             probability_value = random.random()
             if probability_value < GENOME_CONFIG.MUTATION_ACTIVATION:
                 node.activation_response += (random.random()*2-1) * GENOME_CONFIG.MUTATION_ACTIVATION_PERTURBATION
+
+        if self.FDNEAT:
+            probability_value = random.random()
+            if probability_value < GENOME_CONFIG.MUTATION_DESELECTION:
+                self.remove_connection()
