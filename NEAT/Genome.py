@@ -26,7 +26,7 @@ class Genome:
         self.adjusted_fitness = 0
         self.age = 0
         self.FSNEAT = False
-        self.FDNEAT = True
+        self.FDNEAT = False
 
         if nodes != None:
             if np.all([not c.enabled for c in connections]):
