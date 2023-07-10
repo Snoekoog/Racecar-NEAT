@@ -14,7 +14,7 @@ class NetworkWindow(pyglet.window.Window):
         backgroundColor = [255, 255, 255, 255]
         # backgroundColor = [i / 255 for i in backgroundColor]
         glClearColor(*backgroundColor)
-        genome_file = open('./Results/silverstone-base', 'rb')
+        genome_file = open('./Results/silverstone-FDNEAT-run-3', 'rb')
         genome = pickle.load(genome_file)
         genome_file.close()
         self.genome = genome

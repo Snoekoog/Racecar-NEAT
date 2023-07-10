@@ -26,7 +26,7 @@ class Genome:
         self.adjusted_fitness = 0
         self.age = 0
         self.FSNEAT = False
-        self.FDNEAT = False
+        self.FDNEAT = True
 
         if nodes != None:
             if np.all([not c.enabled for c in connections]):
@@ -261,7 +261,7 @@ class Genome:
             if probability_value < GENOME_CONFIG.MUTATION_ACTIVATION:
                 node.activation_response += (random.random()*2-1) * GENOME_CONFIG.MUTATION_ACTIVATION_PERTURBATION
 
-        if self.FDNEAT:
+        if self.FDNEAT and len(self.connections) > 1:
             probability_value = random.random()
             if probability_value < GENOME_CONFIG.MUTATION_DESELECTION:
                 self.remove_connection()
