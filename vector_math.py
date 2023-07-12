@@ -4,26 +4,32 @@ import pygame
 import pyglet
 
 vec2 = pygame.math.Vector2
-# vec2 = pyglet.math.Vec2
 
+# Calculate absolute angle of a vector
 def calc_angle(vector):
     if vector.length() == 0:
         return 0
     return m.degrees(m.atan2(vector.y, vector.x))
 
+# Transform radians to degrees
 def rad_to_deg(alpha):
     return alpha / m.pi * 180
 
+# Transform degrees to radians
 def deg_to_rad(theta):
     return theta / 180 * m.pi
 
+# Get unit vector from angle
 def unit_vector_from_angle(theta):
     theta_rad = deg_to_rad(theta)
 
     return vec2(m.cos(theta_rad), m.sin(theta_rad))
 
-def linesCollided(x1, y1, x2, y2, x3, y3, x4, y4):
-    # print(x1, y1, x2, y2, x3, y3, x4, y4)
+# Check if two lines collide or not
+def lines_collided(x1, y1, x2, y2, x3, y3, x4, y4):
+
+    # Yeah this below is a mess but somehow it gave errors sometimes if I did not do this
+    # Should probably debug some more
     x1 += 0.01
     x2 -= 0.01
     x3 += 0.01
@@ -38,9 +44,11 @@ def linesCollided(x1, y1, x2, y2, x3, y3, x4, y4):
         return True
     return False
 
-def getCollisionPoint(x1, y1, x2, y2, x3, y3, x4, y4):
-    global vec2
-    # print(x1, y1, x2, y2, x3, y3, x4, y4)
+# Get actual collision point between two lines
+def get_collision_point(x1, y1, x2, y2, x3, y3, x4, y4):
+
+    # Yeah this below is a mess but somehow it gave errors sometimes if I did not do this
+    # Should probably debug some more
     x1 += 0.01
     x2 -= 0.01
     x3 += 0.01
@@ -57,6 +65,7 @@ def getCollisionPoint(x1, y1, x2, y2, x3, y3, x4, y4):
         return vec2(intersectionX, intersectionY)
     return None
 
+# Check if a car collides with a track limit
 def do_collide(track_limit, car):
     w = car.w
     h = car.l
@@ -79,9 +88,10 @@ def do_collide(track_limit, car):
     for i in range(4):
         j = i + 1
         j = j % 4
-        if linesCollided(track_limit['x'], track_limit['y'], track_limit['x2'], track_limit['y2'], corners[i].x, corners[i].y, corners[j].x, corners[j].y):
+        if lines_collided(track_limit['x'], track_limit['y'], track_limit['x2'], track_limit['y2'], corners[i].x, corners[i].y, corners[j].x, corners[j].y):
             return True
     return False
 
+# Get Euclidean distance between two points
 def dist(x1, y1, x2, y2):
     return m.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
