@@ -120,4 +120,4 @@ I would like to acknowledge the following sources which I have used during the d
 
 
 ## Accompanying Work
-I have written a paper accompanying this project, in which I discuss the setup of the project and the results I obtained. This paper can be found [here](https://google.com)
+I have written a paper accompanying this project, in which I discuss the setup of the project and the results I obtained. This paper can be found [here](https://drive.google.com/file/d/145c6_AmdJOPudTB2yz39j9o1L_RFq-JD/view?usp=sharing)
