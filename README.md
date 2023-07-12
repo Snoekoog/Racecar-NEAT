@@ -103,7 +103,7 @@ Creating track limits with Silverstone as a template:
 ![Track Generation Screenshot](./example_images/trackgen_example.png)
 
 Placing checkpoints (green lines) on the track
-![Track Generation Screenshot 2](./example_images/trackgen_example2.png)
+![Track Generation Screenshot 2](./example_images/trackgen_example_2.png)
 
 
 ## Future work
