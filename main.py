@@ -19,11 +19,11 @@ class GameWindow(pyglet.window.Window):
         self.mouse_x = int(windowWidth / 2)
         self.mouse_y = int(windowHeight / 2)
         self.asset_directory = None
-        with open("./racegame/tracks/Silverstone/silverstone.json", 'r') as f:
+        with open("./racegame/tracks/Obstaclerun/obstacle_run.json", 'r') as f:
             track_data = json.load(f)
             self.asset_directory = os.path.dirname(f.name)
         self.track_image = pyglet.image.load(self.asset_directory + "/" + track_data['bg_name'])
-        self.game = Game(40, 20, track_data['track_limits'], track_data['reward_gates'], track_data['start_pos']['x'], track_data['start_pos']['y'], track_data['start_pos']['heading'], self)
+        self.game = Game(40, 50, track_data['track_limits'], track_data['reward_gates'], track_data['start_pos']['x'], track_data['start_pos']['y'], track_data['start_pos']['heading'], self)
 
     def on_close(self):
         self.close()

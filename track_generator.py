@@ -15,8 +15,8 @@ class GameWindow(pyglet.window.Window):
         self.state = "track"
         glClearColor(*backgroundColor)
         self.background = pyglet.shapes.Rectangle(0, 0, windowWidth, windowHeight, color=(0, 0, 0))
-        self.pic = pyglet.image.load('./racegame/tracks/Spa/spa-resized.png')
-        self.track_name = "spa"
+        self.pic = pyglet.image.load('./racegame/assets/white_bg.jpg')
+        self.track_name = "obstacle_run"
         self.select_line = None
         self.mouse_x = windowWidth / 2
         self.mouse_y = windowHeight / 2

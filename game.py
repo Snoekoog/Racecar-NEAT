@@ -23,7 +23,8 @@ class Game:
         self.best_genome = None
         self.stop_on_lap = False
         self.champion_id = None
-        initial_genome_file = open('./Results/five-layer-high-rbr', 'rb')
+        # initial_genome_file = open('./Results/five-layer-high-rbr', 'rb')
+        initial_genome_file = open('./Results/silverstone-transfer-redbullring-transfer-spa', 'rb')
         initial_genome = pickle.load(initial_genome_file)
         initial_genome_file.close()
         self.population = Population(self.number_agents, self.max_generations, self.determine_fitness, 11, 2, inject_genomes = None)
