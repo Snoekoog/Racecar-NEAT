@@ -25,7 +25,7 @@ class GameWindow(pyglet.window.Window):
 
         # Background picture (1280x720 image of a track, for example)
         self.background     = pyglet.shapes.Rectangle(0, 0, windowWidth, windowHeight, color=(0, 0, 0))
-        self.pic            = pyglet.image.load('./racegame/assets/white_bg.jpg')
+        self.pic            = pyglet.image.load('./racegame/tracks/Silverstone/silverstone_resized.jpg')
         self.track_name     = "obstacle_run"    # Name of track (CHANGE WHEN MAKING NEW TRACK)
 
     # End process when you attempt to close the window
